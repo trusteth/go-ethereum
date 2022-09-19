@@ -214,6 +214,9 @@ type Config struct {
 
 	// OverrideTerminalTotalDifficultyPassed (TODO: remove after the fork)
 	OverrideTerminalTotalDifficultyPassed *bool `toml:",omitempty"`
+
+	//is networkid set
+	IsNetworkIdSet bool
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain configuration.

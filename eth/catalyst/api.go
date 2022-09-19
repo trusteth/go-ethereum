@@ -569,6 +569,9 @@ func (api *ConsensusAPI) heartbeat() {
 		// Sleep a bit and retrieve the last known consensus updates
 		time.Sleep(5 * time.Second)
 
+		if api.eth.BlockChain().Config().EthPoWForkSupport {
+			continue
+		}
 		// If the network is not yet merged/merging, don't bother scaring the user
 		ttd := api.eth.BlockChain().Config().TerminalTotalDifficulty
 		if ttd == nil {

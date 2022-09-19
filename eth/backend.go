@@ -139,6 +139,13 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
+
+	if !config.IsNetworkIdSet && chainConfig != nil {
+		if chainConfig.ChainID_ALT != nil && chainConfig.EthPoWForkSupport {
+			config.NetworkId = chainConfig.ChainID_ALT.Uint64()
+		}
+	}
+
 	log.Info("")
 	log.Info(strings.Repeat("-", 153))
 	for _, line := range strings.Split(chainConfig.String(), "\n") {

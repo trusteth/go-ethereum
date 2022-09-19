@@ -119,7 +119,12 @@ func (args *TransactionArgs) setDefaults(ctx context.Context, b Backend) error {
 	}
 	// If chain id is provided, ensure it matches the local chain id. Otherwise, set the local
 	// chain id as the default.
-	want := b.ChainConfig().ChainID
+	header, _ := b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
+	chainId := b.ChainConfig().ChainID
+	if header != nil && b.ChainConfig().IsEthPoWFork(header.Number) {
+		chainId = b.ChainConfig().ChainID_ALT
+	}
+	want := chainId
 	if args.ChainID != nil {
 		if have := (*big.Int)(args.ChainID); have.Cmp(want) != 0 {
 			return fmt.Errorf("chainId does not match node's (have=%v, want=%v)", have, want)

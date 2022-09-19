@@ -447,7 +447,12 @@ func (s *PersonalAccountAPI) signTransaction(ctx context.Context, args *Transact
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 
-	return wallet.SignTxWithPassphrase(account, passwd, tx, s.b.ChainConfig().ChainID)
+	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
+	chainId := s.b.ChainConfig().ChainID
+	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
+		chainId = s.b.ChainConfig().ChainID_ALT
+	}
+	return wallet.SignTxWithPassphrase(account, passwd, tx, chainId)
 }
 
 // SendTransaction will create a transaction from the given arguments and
@@ -616,6 +621,10 @@ func NewBlockChainAPI(b Backend) *BlockChainAPI {
 // wasn't synced up to a block where EIP-155 is enabled, but this behavior caused issues
 // in CL clients.
 func (api *BlockChainAPI) ChainId() *hexutil.Big {
+	header, _ := api.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
+	if header != nil && api.b.ChainConfig().IsEthPoWFork(header.Number) {
+		return (*hexutil.Big)(api.b.ChainConfig().ChainID_ALT)
+	}
 	return (*hexutil.Big)(api.b.ChainConfig().ChainID)
 }
 
@@ -731,9 +740,9 @@ func (s *BlockChainAPI) GetHeaderByHash(ctx context.Context, hash common.Hash) m
 }
 
 // GetBlockByNumber returns the requested canonical block.
-// * When blockNr is -1 the chain head is returned.
-// * When blockNr is -2 the pending chain head is returned.
-// * When fullTx is true all transactions in the block are returned, otherwise
+//   - When blockNr is -1 the chain head is returned.
+//   - When blockNr is -2 the pending chain head is returned.
+//   - When fullTx is true all transactions in the block are returned, otherwise
 //   only the transaction hash is returned.
 func (s *BlockChainAPI) GetBlockByNumber(ctx context.Context, number rpc.BlockNumber, fullTx bool) (map[string]interface{}, error) {
 	block, err := s.b.BlockByNumber(ctx, number)
@@ -1646,7 +1655,12 @@ func (s *TransactionAPI) sign(addr common.Address, tx *types.Transaction) (*type
 		return nil, err
 	}
 	// Request the wallet to sign the transaction
-	return wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)
+	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
+	chainId := s.b.ChainConfig().ChainID
+	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
+		chainId = s.b.ChainConfig().ChainID_ALT
+	}
+	return wallet.SignTx(account, tx, chainId)
 }
 
 // SubmitTransaction is a helper function that submits tx to txPool and logs a message.
@@ -1659,6 +1673,10 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	if !b.UnprotectedAllowed() && !tx.Protected() {
 		// Ensure only eip155 signed transactions are submitted if EIP155Required is set.
 		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed over RPC")
+	}
+	// check eip155 sign after EthPow block
+	if b.ChainConfig().IsEthPoWFork(b.CurrentBlock().Number()) && !tx.Protected() {
+		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed")
 	}
 	if err := b.SendTx(ctx, tx); err != nil {
 		return common.Hash{}, err
@@ -1704,7 +1722,12 @@ func (s *TransactionAPI) SendTransaction(ctx context.Context, args TransactionAr
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
 
-	signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)
+	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
+	chainId := s.b.ChainConfig().ChainID
+	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
+		chainId = s.b.ChainConfig().ChainID_ALT
+	}
+	signed, err := wallet.SignTx(account, tx, chainId)
 	if err != nil {
 		return common.Hash{}, err
 	}
