@@ -339,7 +339,7 @@ func (ethash *Ethash) CalcDifficulty(chain consensus.ChainHeaderReader, time uin
 func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
 	next := new(big.Int).Add(parent.Number, big1)
 	switch {
-	case config.IsEthPoWFork(next):
+	case config.IsTessFork(next):
 		if config.TessForkBlock != nil && big.NewInt(0).Add(config.TessForkBlock, big.NewInt(2048)).Cmp(next) == 0 {
 			return params.GenesisDifficulty //Reset difficulty
 		}

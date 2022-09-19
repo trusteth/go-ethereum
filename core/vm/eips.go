@@ -100,7 +100,7 @@ func enable1344(jt *JumpTable) {
 // opChainID implements CHAINID opcode
 func opChainID(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
 
-	if interpreter.evm.chainConfig.IsEthPoWFork(interpreter.evm.Context.BlockNumber) {
+	if interpreter.evm.chainConfig.IsTessFork(interpreter.evm.Context.BlockNumber) {
 		chainId, _ := uint256.FromBig(interpreter.evm.chainConfig.ChainID_TESS)
 		scope.Stack.push(chainId)
 	} else {

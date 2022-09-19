@@ -820,7 +820,7 @@ func (c *ChainConfig) Rules(num *big.Int, isMerge bool) Rules {
 		IsMerge:          isMerge,
 		IsShanghai:       c.IsShanghai(num),
 		isCancun:         c.IsCancun(num),
-		IsEthPoWFork:     c.IsTessFork(num),
+		IsTessFork:       c.IsTessFork(num),
 	}
 }
 

@@ -121,7 +121,7 @@ func (args *TransactionArgs) setDefaults(ctx context.Context, b Backend) error {
 	// chain id as the default.
 	header, _ := b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := b.ChainConfig().ChainID
-	if header != nil && b.ChainConfig().IsEthPoWFork(header.Number) {
+	if header != nil && b.ChainConfig().IsTessFork(header.Number) {
 		chainId = b.ChainConfig().ChainID_TESS
 	}
 	want := chainId

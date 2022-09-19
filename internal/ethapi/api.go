@@ -1724,7 +1724,7 @@ func (s *TransactionAPI) SendTransaction(ctx context.Context, args TransactionAr
 
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := s.b.ChainConfig().ChainID
-	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
+	if header != nil && s.b.ChainConfig().IsTessFork(header.Number) {
 		chainId = s.b.ChainConfig().ChainID_TESS
 	}
 	signed, err := wallet.SignTx(account, tx, chainId)
