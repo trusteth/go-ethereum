@@ -76,10 +76,10 @@ var (
 		LondonBlock:             big.NewInt(12_965_000),
 		ArrowGlacierBlock:       big.NewInt(13_773_000),
 		GrayGlacierBlock:        big.NewInt(15_050_000),
-		EthPoWForkBlock:         big.NewInt(15_537_394),
-		EthPoWForkSupport:       true,
-		ChainID_ALT:             big.NewInt(8282), 
-		TerminalTotalDifficulty: nil,               // 58_750_000_000_000_000_000_000
+		TessForkBlock:           big.NewInt(15_537_394),
+		TessForkSupport:         true,
+		ChainID_TESS:            big.NewInt(8282),
+		TerminalTotalDifficulty: nil, // 58_750_000_000_000_000_000_000
 		Ethash:                  new(EthashConfig),
 	}
 
@@ -121,7 +121,7 @@ var (
 		MuirGlacierBlock:              big.NewInt(7_117_117),
 		BerlinBlock:                   big.NewInt(9_812_189),
 		LondonBlock:                   big.NewInt(10_499_401),
-		ChainID_ALT:                   big.NewInt(3),
+		ChainID_TESS:                  big.NewInt(3),
 		TerminalTotalDifficulty:       new(big.Int).SetUint64(50_000_000_000_000_000),
 		TerminalTotalDifficultyPassed: true,
 		Ethash:                        new(EthashConfig),
@@ -164,7 +164,7 @@ var (
 		MuirGlacierBlock:              big.NewInt(0),
 		BerlinBlock:                   big.NewInt(0),
 		LondonBlock:                   big.NewInt(0),
-		ChainID_ALT:                   big.NewInt(11155111),
+		ChainID_TESS:                  big.NewInt(11155111),
 		TerminalTotalDifficulty:       big.NewInt(17_000_000_000_000_000),
 		TerminalTotalDifficultyPassed: true,
 		MergeNetsplitBlock:            big.NewInt(1735371),
@@ -196,7 +196,7 @@ var (
 		MuirGlacierBlock:    nil,
 		BerlinBlock:         big.NewInt(8_290_928),
 		LondonBlock:         big.NewInt(8_897_988),
-		ChainID_ALT:         big.NewInt(4), //10001
+		ChainID_TESS:        big.NewInt(4), //10001
 		ArrowGlacierBlock:   nil,
 		Clique: &CliqueConfig{
 			Period: 15,
@@ -377,9 +377,9 @@ type ChainConfig struct {
 	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
 	ShanghaiBlock       *big.Int `json:"shanghaiBlock,omitempty"`       // Shanghai switch block (nil = no fork, 0 = already on shanghai)
 	CancunBlock         *big.Int `json:"cancunBlock,omitempty"`         // Cancun switch block (nil = no fork, 0 = already on cancun)
-	EthPoWForkBlock     *big.Int `json:"ethPoWForkBlock,omitempty"`     //EthPoW hard-fork switch block (nil = no fork)
-	EthPoWForkSupport   bool     `json:"ethPoWForkSupport,omitempty"`   // Whether the nodes supports or opposes the EthPoW hard-fork
-	ChainID_ALT         *big.Int `json:"chainId_alt"`                   // chainId alt identifies the current chain after pos switch and is used for replay protection
+	TessForkBlock       *big.Int `json:"TessForkBlock,omitempty"`       //EthPoW hard-fork switch block (nil = no fork)
+	TessForkSupport     bool     `json:"TessForkSupport,omitempty"`     // Whether the nodes supports or opposes the EthPoW hard-fork
+	ChainID_TESS        *big.Int `json:"ChainID_TESS"`                  // chainId alt identifies the current chain after pos switch and is used for replay protection
 
 	// TerminalTotalDifficulty is the amount of total difficulty reached by
 	// the network that triggers the consensus upgrade.
@@ -478,8 +478,8 @@ func (c *ChainConfig) String() string {
 	if c.CancunBlock != nil {
 		banner += fmt.Sprintf(" - Cancun:                      %-8v\n", c.CancunBlock)
 	}
-	if c.EthPoWForkBlock != nil {
-		banner += fmt.Sprintf(" - TEth TESS:                      %-8v\n", c.EthPoWForkBlock)
+	if c.TessForkBlock != nil {
+		banner += fmt.Sprintf(" - TEth TESS:                      %-8v\n", c.TessForkBlock)
 	}
 	banner += "\n"
 
@@ -571,7 +571,7 @@ func (c *ChainConfig) IsGrayGlacier(num *big.Int) bool {
 
 // IsEthPoWFork returns whether num is either equal to the EthPoWFork fork block or greater.
 func (c *ChainConfig) IsEthPoWFork(num *big.Int) bool {
-	return isForked(c.EthPoWForkBlock, num)
+	return isForked(c.TessForkBlock, num)
 }
 
 // IsTerminalPoWBlock returns whether the given block is the last block of PoW stage.
@@ -637,7 +637,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "mergeNetsplitBlock", block: c.MergeNetsplitBlock, optional: true},
 		{name: "shanghaiBlock", block: c.ShanghaiBlock, optional: true},
 		{name: "cancunBlock", block: c.CancunBlock, optional: true},
-		{name: "tessForkBlock", block: c.EthPoWForkBlock, optional: true},
+		{name: "tessForkBlock", block: c.TessForkBlock, optional: true},
 	} {
 		if lastFork.name != "" {
 			// Next one must be higher number
@@ -722,11 +722,11 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	if isForkIncompatible(c.CancunBlock, newcfg.CancunBlock, head) {
 		return newCompatError("Cancun fork block", c.CancunBlock, newcfg.CancunBlock)
 	}
-	if isForkIncompatible(c.EthPoWForkBlock, newcfg.EthPoWForkBlock, head) {
-		return newCompatError("TEth TESS fork block", c.EthPoWForkBlock, newcfg.EthPoWForkBlock)
+	if isForkIncompatible(c.TessForkBlock, newcfg.TessForkBlock, head) {
+		return newCompatError("TEth TESS fork block", c.TessForkBlock, newcfg.TessForkBlock)
 	}
-	if c.IsEthPoWFork(head) && c.EthPoWForkSupport != newcfg.EthPoWForkSupport {
-		return newCompatError("TEth TESS fork support flag", c.EthPoWForkBlock, newcfg.EthPoWForkBlock)
+	if c.IsEthPoWFork(head) && c.TessForkSupport != newcfg.TessForkSupport {
+		return newCompatError("TEth TESS fork support flag", c.TessForkBlock, newcfg.TessForkBlock)
 	}
 	return nil
 }

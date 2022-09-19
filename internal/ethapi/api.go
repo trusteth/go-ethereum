@@ -450,7 +450,7 @@ func (s *PersonalAccountAPI) signTransaction(ctx context.Context, args *Transact
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := s.b.ChainConfig().ChainID
 	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
-		chainId = s.b.ChainConfig().ChainID_ALT
+		chainId = s.b.ChainConfig().ChainID_TESS
 	}
 	return wallet.SignTxWithPassphrase(account, passwd, tx, chainId)
 }
@@ -623,7 +623,7 @@ func NewBlockChainAPI(b Backend) *BlockChainAPI {
 func (api *BlockChainAPI) ChainId() *hexutil.Big {
 	header, _ := api.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	if header != nil && api.b.ChainConfig().IsEthPoWFork(header.Number) {
-		return (*hexutil.Big)(api.b.ChainConfig().ChainID_ALT)
+		return (*hexutil.Big)(api.b.ChainConfig().ChainID_TESS)
 	}
 	return (*hexutil.Big)(api.b.ChainConfig().ChainID)
 }
@@ -743,7 +743,7 @@ func (s *BlockChainAPI) GetHeaderByHash(ctx context.Context, hash common.Hash) m
 //   - When blockNr is -1 the chain head is returned.
 //   - When blockNr is -2 the pending chain head is returned.
 //   - When fullTx is true all transactions in the block are returned, otherwise
-//   only the transaction hash is returned.
+//     only the transaction hash is returned.
 func (s *BlockChainAPI) GetBlockByNumber(ctx context.Context, number rpc.BlockNumber, fullTx bool) (map[string]interface{}, error) {
 	block, err := s.b.BlockByNumber(ctx, number)
 	if block != nil && err == nil {
@@ -1658,7 +1658,7 @@ func (s *TransactionAPI) sign(addr common.Address, tx *types.Transaction) (*type
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := s.b.ChainConfig().ChainID
 	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
-		chainId = s.b.ChainConfig().ChainID_ALT
+		chainId = s.b.ChainConfig().ChainID_TESS
 	}
 	return wallet.SignTx(account, tx, chainId)
 }
@@ -1725,7 +1725,7 @@ func (s *TransactionAPI) SendTransaction(ctx context.Context, args TransactionAr
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := s.b.ChainConfig().ChainID
 	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
-		chainId = s.b.ChainConfig().ChainID_ALT
+		chainId = s.b.ChainConfig().ChainID_TESS
 	}
 	signed, err := wallet.SignTx(account, tx, chainId)
 	if err != nil {

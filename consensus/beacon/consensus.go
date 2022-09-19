@@ -42,10 +42,10 @@ var (
 // codebase, inherently breaking if the engine is swapped out. Please put common
 // error types into the consensus package.
 var (
-	errTooManyUncles    = errors.New("too many uncles")
-	errInvalidNonce     = errors.New("invalid nonce")
-	errInvalidUncleHash = errors.New("invalid uncle hash")
-	errInvalidTimestamp = errors.New("invalid timestamp")
+	errTooManyUncles       = errors.New("too many uncles")
+	errInvalidNonce        = errors.New("invalid nonce")
+	errInvalidUncleHash    = errors.New("invalid uncle hash")
+	errInvalidTimestamp    = errors.New("invalid timestamp")
 	errNotSupportPosHeader = errors.New("not support pos header")
 )
 
@@ -80,7 +80,7 @@ func (beacon *Beacon) Author(header *types.Header) (common.Address, error) {
 // VerifyHeader checks whether a header conforms to the consensus rules of the
 // stock Ethereum consensus engine.
 func (beacon *Beacon) VerifyHeader(chain consensus.ChainHeaderReader, header *types.Header, seal bool) error {
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return beacon.ethone.VerifyHeader(chain, header, seal)
 	}
 	reached, err := IsTTDReached(chain, header.ParentHash, header.Number.Uint64()-1)
@@ -107,7 +107,7 @@ func (beacon *Beacon) VerifyHeaders(chain consensus.ChainHeaderReader, headers [
 	if !beacon.IsPoSHeader(headers[len(headers)-1]) {
 		return beacon.ethone.VerifyHeaders(chain, headers, seals)
 	}
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		err := errNotSupportPosHeader
 		results := make(chan error, len(headers))
 		for i := 0; i < len(headers); i++ {
@@ -227,7 +227,7 @@ func (beacon *Beacon) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 		return beacon.ethone.VerifyUncles(chain, block)
 	}
 
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return errNotSupportPosHeader
 	}
 	// Verify that there is no uncle block. It's explicitly disabled in the beacon
@@ -240,9 +240,9 @@ func (beacon *Beacon) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 // verifyHeader checks whether a header conforms to the consensus rules of the
 // stock Ethereum consensus engine. The difference between the beacon and classic is
 // (a) The following fields are expected to be constants:
-//     - difficulty is expected to be 0
-// 	   - nonce is expected to be 0
-//     - unclehash is expected to be Hash(emptyHeader)
+//   - difficulty is expected to be 0
+//   - nonce is expected to be 0
+//   - unclehash is expected to be Hash(emptyHeader)
 //     to be the desired constants
 //
 // (b) we don't verify if a block is in the future anymore
@@ -326,7 +326,7 @@ func (beacon *Beacon) verifyHeaders(chain consensus.ChainHeaderReader, headers [
 // Prepare implements consensus.Engine, initializing the difficulty field of a
 // header to conform to the beacon protocol. The changes are done inline.
 func (beacon *Beacon) Prepare(chain consensus.ChainHeaderReader, header *types.Header) error {
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return beacon.ethone.Prepare(chain, header)
 	}
 
@@ -350,7 +350,7 @@ func (beacon *Beacon) Finalize(chain consensus.ChainHeaderReader, header *types.
 		beacon.ethone.Finalize(chain, header, state, txs, uncles)
 		return
 	}
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return
 	}
 	// The block reward is no longer handled here. It's done by the
@@ -366,7 +366,7 @@ func (beacon *Beacon) FinalizeAndAssemble(chain consensus.ChainHeaderReader, hea
 	if !beacon.IsPoSHeader(header) {
 		return beacon.ethone.FinalizeAndAssemble(chain, header, state, txs, uncles, receipts)
 	}
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return nil, errNotSupportPosHeader
 	}
 	// Finalize and assemble the block
@@ -400,7 +400,7 @@ func (beacon *Beacon) SealHash(header *types.Header) common.Hash {
 // given the parent block's time and difficulty.
 func (beacon *Beacon) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *types.Header) *big.Int {
 	// Transition isn't triggered yet, use the legacy rules for calculation
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return beacon.ethone.CalcDifficulty(chain, time, parent)
 	}
 	if reached, _ := IsTTDReached(chain, parent.Hash(), parent.Number.Uint64()); !reached {
@@ -449,7 +449,7 @@ func (beacon *Beacon) SetThreads(threads int) {
 // It depends on the parentHash already being stored in the database.
 // If the parentHash is not stored in the database a UnknownAncestor error is returned.
 func IsTTDReached(chain consensus.ChainHeaderReader, parentHash common.Hash, number uint64) (bool, error) {
-	if chain.Config().EthPoWForkSupport {
+	if chain.Config().TessForkSupport {
 		return false, nil
 	}
 	if chain.Config().TerminalTotalDifficulty == nil {

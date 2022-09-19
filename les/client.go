@@ -105,11 +105,11 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightEthereum, error) {
 	log.Info("")
 
 	if !config.IsNetworkIdSet && chainConfig != nil {
-		if chainConfig.ChainID_ALT != nil && chainConfig.EthPoWForkSupport {
-			config.NetworkId = chainConfig.ChainID_ALT.Uint64()
+		if chainConfig.ChainID_TESS != nil && chainConfig.TessForkSupport {
+			config.NetworkId = chainConfig.ChainID_TESS.Uint64()
 		}
 	}
-	
+
 	peers := newServerPeerSet()
 	merger := consensus.NewMerger(chainDb)
 	leth := &LightEthereum{
