@@ -569,8 +569,8 @@ func (c *ChainConfig) IsGrayGlacier(num *big.Int) bool {
 	return isForked(c.GrayGlacierBlock, num)
 }
 
-// IsEthPoWFork returns whether num is either equal to the EthPoWFork fork block or greater.
-func (c *ChainConfig) IsEthPoWFork(num *big.Int) bool {
+// IsTessFork returns whether num is either equal to the EthPoWFork fork block or greater.
+func (c *ChainConfig) IsTessFork(num *big.Int) bool {
 	return isForked(c.TessForkBlock, num)
 }
 
@@ -796,7 +796,7 @@ type Rules struct {
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158               bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsIstanbul bool
 	IsBerlin, IsLondon                                      bool
-	IsMerge, IsShanghai, isCancun, IsEthPoWFork             bool
+	IsMerge, IsShanghai, isCancun, IsTessFork               bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -820,7 +820,7 @@ func (c *ChainConfig) Rules(num *big.Int, isMerge bool) Rules {
 		IsMerge:          isMerge,
 		IsShanghai:       c.IsShanghai(num),
 		isCancun:         c.IsCancun(num),
-		IsEthPoWFork:     c.IsEthPoWFork(num),
+		IsEthPoWFork:     c.IsTessFork(num),
 	}
 }
 

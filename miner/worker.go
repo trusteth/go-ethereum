@@ -882,8 +882,8 @@ func (w *worker) commitTransactions(env *environment, txs *types.TransactionsByP
 		from, _ := types.Sender(env.signer, tx)
 		// Check whether the tx is replay protected. If we're not in the EIP155 hf
 		// phase, start ignoring the sender until we do.
-		// add IsEthPoWFork check sign with chainid protected force check
-		if w.chainConfig.IsEthPoWFork(env.header.Number) && !tx.Protected() {
+		// add IsTessFork check sign with chainid protected force check
+		if w.chainConfig.IsTessFork(env.header.Number) && !tx.Protected() {
 			log.Trace("Ignoring not protected transaction", "hash", tx.Hash(), "eipEthPoW", w.chainConfig.TessForkBlock)
 			txs.Pop()
 			continue
