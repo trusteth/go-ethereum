@@ -39,10 +39,11 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
-	FrontierBlockReward       = big.NewInt(5e+18) // Block reward in wei for successfully mining a block
-	ByzantiumBlockReward      = big.NewInt(3e+18) // Block reward in wei for successfully mining a block upward from Byzantium
-	ConstantinopleBlockReward = big.NewInt(2e+18) // Block reward in wei for successfully mining a block upward from Constantinople
-	TessBlockReward           = big.NewInt(2e+20) // Block reward in wei for successfully mining a block upward from TessFork
+	FrontierBlockReward       = big.NewInt(5e+18)                                     // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward      = big.NewInt(3e+18)                                     // Block reward in wei for successfully mining a block upward from Byzantium
+	ConstantinopleBlockReward = big.NewInt(2e+18)                                     // Block reward in wei for successfully mining a block upward from Constantinople
+	TessBlockReward           = big.NewInt(1).Mul(big.NewInt(2e+18), big.NewInt(100)) // Block reward in wei for successfully mining a block upward from TessFork
+
 	// 200 TETH reward from TESS fork. it will decreased 20 TETH every 5M block (about 2year 2Months)
 
 	maxUncles                     = 2         // Maximum number of uncles allowed in a single block

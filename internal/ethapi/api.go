@@ -449,7 +449,7 @@ func (s *PersonalAccountAPI) signTransaction(ctx context.Context, args *Transact
 
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := s.b.ChainConfig().ChainID
-	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
+	if header != nil && s.b.ChainConfig().IsTessFork(header.Number) {
 		chainId = s.b.ChainConfig().ChainID_TESS
 	}
 	return wallet.SignTxWithPassphrase(account, passwd, tx, chainId)
@@ -622,7 +622,7 @@ func NewBlockChainAPI(b Backend) *BlockChainAPI {
 // in CL clients.
 func (api *BlockChainAPI) ChainId() *hexutil.Big {
 	header, _ := api.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
-	if header != nil && api.b.ChainConfig().IsEthPoWFork(header.Number) {
+	if header != nil && api.b.ChainConfig().IsTessFork(header.Number) {
 		return (*hexutil.Big)(api.b.ChainConfig().ChainID_TESS)
 	}
 	return (*hexutil.Big)(api.b.ChainConfig().ChainID)
@@ -1657,7 +1657,7 @@ func (s *TransactionAPI) sign(addr common.Address, tx *types.Transaction) (*type
 	// Request the wallet to sign the transaction
 	header, _ := s.b.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
 	chainId := s.b.ChainConfig().ChainID
-	if header != nil && s.b.ChainConfig().IsEthPoWFork(header.Number) {
+	if header != nil && s.b.ChainConfig().IsTessFork(header.Number) {
 		chainId = s.b.ChainConfig().ChainID_TESS
 	}
 	return wallet.SignTx(account, tx, chainId)
@@ -1675,7 +1675,7 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed over RPC")
 	}
 	// check eip155 sign after EthPow block
-	if b.ChainConfig().IsEthPoWFork(b.CurrentBlock().Number()) && !tx.Protected() {
+	if b.ChainConfig().IsTessFork(b.CurrentBlock().Number()) && !tx.Protected() {
 		return common.Hash{}, errors.New("only replay-protected (EIP-155) transactions allowed")
 	}
 	if err := b.SendTx(ctx, tx); err != nil {

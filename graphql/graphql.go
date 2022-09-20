@@ -1334,7 +1334,7 @@ func (r *Resolver) MaxPriorityFeePerGas(ctx context.Context) (hexutil.Big, error
 
 func (r *Resolver) ChainID(ctx context.Context) (hexutil.Big, error) {
 	header, _ := r.backend.HeaderByNumber(context.Background(), rpc.LatestBlockNumber)
-	if header != nil && r.backend.ChainConfig().IsEthPoWFork(header.Number) {
+	if header != nil && r.backend.ChainConfig().IsTessFork(header.Number) {
 		return hexutil.Big(*r.backend.ChainConfig().ChainID_TESS), nil
 	}
 	return hexutil.Big(*r.backend.ChainConfig().ChainID), nil
