@@ -39,11 +39,14 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
-	FrontierBlockReward           = big.NewInt(5e+18) // Block reward in wei for successfully mining a block
-	ByzantiumBlockReward          = big.NewInt(3e+18) // Block reward in wei for successfully mining a block upward from Byzantium
-	ConstantinopleBlockReward     = big.NewInt(2e+18) // Block reward in wei for successfully mining a block upward from Constantinople
-	maxUncles                     = 2                 // Maximum number of uncles allowed in a single block
-	allowedFutureBlockTimeSeconds = int64(15)         // Max seconds from current time allowed for blocks, before they're considered future blocks
+	FrontierBlockReward       = big.NewInt(5e+18) // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward      = big.NewInt(3e+18) // Block reward in wei for successfully mining a block upward from Byzantium
+	ConstantinopleBlockReward = big.NewInt(2e+18) // Block reward in wei for successfully mining a block upward from Constantinople
+	TessBlockReward           = big.NewInt(2e+20) // Block reward in wei for successfully mining a block upward from TessFork
+	// 200 TETH reward from TESS fork. it will decreased 20 TETH every 5M block (about 2year 2Months)
+
+	maxUncles                     = 2         // Maximum number of uncles allowed in a single block
+	allowedFutureBlockTimeSeconds = int64(15) // Max seconds from current time allowed for blocks, before they're considered future blocks
 
 	// calcDifficultyEip5133 is the difficulty adjustment algorithm as specified by EIP 5133.
 	// It offsets the bomb a total of 11.4M blocks.
@@ -693,8 +696,10 @@ func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 
 // Some weird constants to avoid constant memory allocs for them.
 var (
-	big8  = big.NewInt(8)
-	big32 = big.NewInt(32)
+	big8   = big.NewInt(8)
+	big32  = big.NewInt(32)
+	big5M  = big.NewInt(5_000_000)
+	big20M = big.NewInt(20_000_000)
 )
 
 // AccumulateRewards credits the coinbase of the given block with the mining
@@ -709,6 +714,31 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	if config.IsConstantinople(header.Number) {
 		blockReward = ConstantinopleBlockReward
 	}
+	if config.IsTessFork(header.Number) {
+		// default TESS Fork BlockReward is 200 TETH
+		blockReward = TessBlockReward
+		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
+
+		// Intial Block from TessFork to +5000 Block is mined by TESSfoundation for DevFund
+		if header.Number.Cmp(config.TessForkBlock.Add(config.TessForkBlock, big.NewInt(5000))) < 0 {
+			blockReward = TessBlockReward.Mul(TessBlockReward, big.NewInt(100)) // 20000TETH per block * 5000
+			fmt.Printf(" - TEth TESS: BlockNumber %-8v : %-8v\n", header.Number, blockReward)
+
+		} else if header.Number.Cmp(big20M) > 0 {
+			resblock := header.Number.Sub(header.Number, big20M)
+			d := resblock
+			// every 5M blockheights , decrease reward 10% of TessBlockReward , after 20M blockheights
+			v := d.Div(d, big5M)
+			v = v.Add(v, big1)
+			subr := v.Mul(v, decrwd)
+			if subr.Cmp(blockReward) <= 0 {
+				blockReward = blockReward.Sub(blockReward, subr)
+			} else {
+				blockReward = big.NewInt(0) // no more blockRewards, only GasFee is mined.
+			}
+		}
+	}
+
 	// Accumulate the rewards for the miner and any included uncles
 	reward := new(big.Int).Set(blockReward)
 	r := new(big.Int)

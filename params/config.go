@@ -377,7 +377,7 @@ type ChainConfig struct {
 	MergeNetsplitBlock  *big.Int `json:"mergeNetsplitBlock,omitempty"`  // Virtual fork after The Merge to use as a network splitter
 	ShanghaiBlock       *big.Int `json:"shanghaiBlock,omitempty"`       // Shanghai switch block (nil = no fork, 0 = already on shanghai)
 	CancunBlock         *big.Int `json:"cancunBlock,omitempty"`         // Cancun switch block (nil = no fork, 0 = already on cancun)
-	TessForkBlock       *big.Int `json:"TessForkBlock,omitempty"`       //EthPoW hard-fork switch block (nil = no fork)
+	TessForkBlock       *big.Int `json:"TessForkBlock,omitempty"`       // Tess hard-fork switch block (nil = no fork)
 	TessForkSupport     bool     `json:"TessForkSupport,omitempty"`     // Whether the nodes supports or opposes the EthPoW hard-fork
 	ChainID_TESS        *big.Int `json:"ChainID_TESS"`                  // chainId alt identifies the current chain after pos switch and is used for replay protection
 
@@ -725,7 +725,7 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	if isForkIncompatible(c.TessForkBlock, newcfg.TessForkBlock, head) {
 		return newCompatError("TEth TESS fork block", c.TessForkBlock, newcfg.TessForkBlock)
 	}
-	if c.IsEthPoWFork(head) && c.TessForkSupport != newcfg.TessForkSupport {
+	if c.IsTessFork(head) && c.TessForkSupport != newcfg.TessForkSupport {
 		return newCompatError("TEth TESS fork support flag", c.TessForkBlock, newcfg.TessForkBlock)
 	}
 	return nil
