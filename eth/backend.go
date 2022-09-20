@@ -140,11 +140,13 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 		return nil, genesisErr
 	}
 
-	if !config.IsNetworkIdSet && chainConfig != nil {
-		if chainConfig.ChainID_TESS != nil && chainConfig.TessForkSupport {
-			config.NetworkId = chainConfig.ChainID_TESS.Uint64()
+	/*
+		if !config.IsNetworkIdSet && chainConfig != nil {
+			if chainConfig.ChainID_TESS != nil && chainConfig.TessForkSupport {
+				config.NetworkId = chainConfig.ChainID_TESS.Uint64()
+			}
 		}
-	}
+	*/
 
 	log.Info("")
 	log.Info(strings.Repeat("-", 153))
