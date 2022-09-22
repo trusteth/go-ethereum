@@ -347,10 +347,14 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 	switch {
 	case config.IsTessFork(next):
 		if config.TessForkBlock != nil && big.NewInt(0).Add(config.TessForkBlock, big.NewInt(2048)).Cmp(next) == 0 {
+			// Dynamic Change ChainID
+			config.ChainID = config.ChainID_TESS
 			return params.GenesisDifficulty //Reset difficulty
 		}
 
 		if config.TessForkBlock != nil && config.TessForkBlock.Cmp(next) == 0 {
+			// Dynamic Change ChainID
+			config.ChainID = config.ChainID_TESS
 			return big.NewInt(1) //Reset
 		}
 		return calcDifficultyEthPoW(time, parent)
@@ -721,6 +725,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		// default TESS Fork BlockReward is 200 TETH
 		blockReward = TessBlockReward
 		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
+		fmt.Printf(" - TEth TESS: BlockNumber %-8v : %-8v, decr %-8v\n", header.Number, blockReward, decrwd)
 
 		// Intial Block from TessFork to +5000 Block is mined by TESSfoundation for DevFund
 		if header.Number.Cmp(config.TessForkBlock.Add(config.TessForkBlock, big.NewInt(5000))) < 0 {
