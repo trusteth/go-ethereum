@@ -78,7 +78,7 @@ var (
 		GrayGlacierBlock:        big.NewInt(15_050_000),
 		TessForkBlock:           big.NewInt(15_537_394),
 		TessForkSupport:         true,
-		ChainID_TESS:            big.NewInt(8282),
+		ChainID_TESS:            big.NewInt(18282),
 		TerminalTotalDifficulty: nil, // 58_750_000_000_000_000_000_000
 		Ethash:                  new(EthashConfig),
 	}
