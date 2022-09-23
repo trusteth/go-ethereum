@@ -23,7 +23,7 @@ import (
 	"math/big"
 	"runtime"
 	"time"
-	"os"
+	// "os"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
@@ -730,13 +730,10 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		currentblock := header.Number
 		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
 		bonusround1 := big.NewInt(1).Add(config.TessForkBlock,big.NewInt(5000))
-		fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
+		// fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
 
-			config.ChainID = config.ChainID_TESS
-			fmt.Printf("Set2 ChainId to %v\n", config.ChainID_TESS)
-
-
-		currentblock = big.NewInt(24_000_001)
+		config.ChainID = config.ChainID_TESS
+		// fmt.Printf("Set2 ChainId to %v\n", config.ChainID_TESS)
 
 		// Intial Block from TessFork to +5000 Block is mined by TESSfoundation for DevFund
 		if currentblock.Cmp(bonusround1) < 0 {
@@ -745,24 +742,21 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 
 		} else if currentblock.Cmp(big20M) > 0 {
 
-			resblock := big.NewInt(0).Sub(currentblock, big20M)
-			d := resblock
+			cbI64 := int64(currentblock.Int64())
+			rbI64 := cbI64 - 20000000
+			qI64 := rbI64 / 5000000 
+			subr := big.NewInt(1).Mul(decrwd, big.NewInt(qI64+1))
+
 			// every 5M blockheights , decrease reward 10% of TessBlockReward , after 20M blockheights
-			v := d.Div(d, big5M)
-			v = v.Add(v, big1)
-			subr := v.Mul(v, decrwd)
-
-			fmt.Printf(" -  BlockNumber %-8v resblock: %-8v , rwd %-8v\n", currentblock, resblock,  blockReward, d,v,subr)
-
+			fmt.Printf(" c %-8v r   %-8v q %-8v, subr %-8v \n", cbI64, rbI64, qI64, subr)
 			if subr.Cmp(blockReward) <= 0 {
 				blockReward = blockReward.Sub(blockReward, subr)
+			fmt.Printf(" - Reward 1: %-8v %-8v\n", currentblock, blockReward)
 			} else {
-				blockReward = big.NewInt(0) // no more blockRewards, only GasFee is mined.
+				blockReward = big.NewInt(0)
+			//	fmt.Printf(" - Reward 0: %-8v %-8v\n", currentblock, blockReward)
 			}
-
-			fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
-
-			os.Exit(99)
+			//  fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
 		}
 		fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
 	}
