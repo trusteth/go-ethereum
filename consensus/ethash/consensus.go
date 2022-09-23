@@ -23,6 +23,7 @@ import (
 	"math/big"
 	"runtime"
 	"time"
+
 	// "os"
 
 	mapset "github.com/deckarep/golang-set"
@@ -32,6 +33,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
@@ -288,8 +290,8 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainHeaderReader, header, pa
 	expected := ethash.CalcDifficulty(chain, header.Time, parent)
 
 	if expected.Cmp(header.Difficulty) != 0 {
-		//fmt.Printf("invalid header %v ", EncodeJSON(header))
-		fmt.Printf("invalid header: %v\n", header)
+		//log.Info("invalid header %v ", EncodeJSON(header))
+		log.Info("invalid header: %v\n", header)
 		return fmt.Errorf("invalid difficulty: have %v, want %v", header.Difficulty, expected)
 	}
 	// Verify that the gas limit is <= 2^63-1
@@ -350,14 +352,14 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 		if config.TessForkBlock != nil && big.NewInt(0).Add(config.TessForkBlock, big.NewInt(2048)).Cmp(next) == 0 {
 			// Dynamic Change ChainID
 			config.ChainID = config.ChainID_TESS
-			fmt.Printf("Set1 ChainId to %v", config.ChainID_TESS)
+			log.Info("Set1 ChainId to %v", config.ChainID_TESS)
 			return params.GenesisDifficulty //Reset difficulty
 		}
 
 		if config.TessForkBlock != nil && config.TessForkBlock.Cmp(next) == 0 {
 			// Dynamic Change ChainID
 			config.ChainID = config.ChainID_TESS
-			fmt.Printf("Set2 ChainId to %v", config.ChainID_TESS)
+			log.Info("Set2 ChainId to %v", config.ChainID_TESS)
 			return big.NewInt(1) //Reset
 		}
 		return calcDifficultyEthPoW(time, parent)
@@ -729,36 +731,36 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		blockReward = TessBlockReward
 		currentblock := header.Number
 		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
-		bonusround1 := big.NewInt(1).Add(config.TessForkBlock,big.NewInt(5000))
-		// fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
+		bonusround1 := big.NewInt(1).Add(config.TessForkBlock, big.NewInt(5000))
+		// log.Info(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
 
 		config.ChainID = config.ChainID_TESS
-		// fmt.Printf("Set2 ChainId to %v\n", config.ChainID_TESS)
+		// log.Info("Set2 ChainId to %v\n", config.ChainID_TESS)
 
 		// Intial Block from TessFork to +5000 Block is mined by TESSfoundation for DevFund
 		if currentblock.Cmp(bonusround1) < 0 {
 			blockReward = big.NewInt(1).Mul(TessBlockReward, big.NewInt(100)) // 20000TETH per block * 5000
-			fmt.Printf(" - Bonus Period1: BlockNumber %-8v : %-8v\n", currentblock, blockReward)
+			log.Info(" - Bonus Period1: BlockNumber %-8v : %-8v\n", currentblock, blockReward)
 
 		} else if currentblock.Cmp(big20M) > 0 {
 
 			cbI64 := int64(currentblock.Int64())
 			rbI64 := cbI64 - 20000000
-			qI64 := rbI64 / 5000000 
+			qI64 := rbI64 / 5000000
 			subr := big.NewInt(1).Mul(decrwd, big.NewInt(qI64+1))
 
 			// every 5M blockheights , decrease reward 10% of TessBlockReward , after 20M blockheights
-			fmt.Printf(" c %-8v r   %-8v q %-8v, subr %-8v \n", cbI64, rbI64, qI64, subr)
+			log.Info(" c %-8v r   %-8v q %-8v, subr %-8v \n", cbI64, rbI64, qI64, subr)
 			if subr.Cmp(blockReward) <= 0 {
 				blockReward = blockReward.Sub(blockReward, subr)
-			fmt.Printf(" - Reward 1: %-8v %-8v\n", currentblock, blockReward)
+				log.Info(" - Reward 1: %-8v %-8v\n", currentblock, blockReward)
 			} else {
 				blockReward = big.NewInt(0)
-			//	fmt.Printf(" - Reward 0: %-8v %-8v\n", currentblock, blockReward)
+				//	log.Info(" - Reward 0: %-8v %-8v\n", currentblock, blockReward)
 			}
-			//  fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
+			//  log.Info(" - Reward : %-8v %-8v\n", currentblock, blockReward)
 		}
-		fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
+		log.Info(" - Reward : %-8v %-8v\n", currentblock, blockReward)
 	}
 
 	// Accumulate the rewards for the miner and any included uncles
