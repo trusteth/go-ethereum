@@ -492,7 +492,7 @@ func (bc *BlockChain) loadLastState() error {
 
 	if bc.chainConfig.IsTessFork(currentBlock.Number()) {
 		bc.chainConfig.ChainID = bc.chainConfig.ChainID_TESS
-		log.Info("Set ChainID to TESSFork ", bc.chainConfig.ChainID)
+		log.Info("Set ChainID to TESSFork ", "number", bc.chainConfig.ChainID)
 	}
 
 	if currentFinalizedBlock != nil {

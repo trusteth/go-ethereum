@@ -291,7 +291,7 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainHeaderReader, header, pa
 
 	if expected.Cmp(header.Difficulty) != 0 {
 		//log.Info("invalid header %v ", EncodeJSON(header))
-		log.Info("invalid header: %v\n", header)
+		fmt.Errorf("invalid header: %v\n", header)
 		return fmt.Errorf("invalid difficulty: have %v, want %v", header.Difficulty, expected)
 	}
 	// Verify that the gas limit is <= 2^63-1
@@ -352,14 +352,14 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 		if config.TessForkBlock != nil && big.NewInt(0).Add(config.TessForkBlock, big.NewInt(2048)).Cmp(next) == 0 {
 			// Dynamic Change ChainID
 			config.ChainID = config.ChainID_TESS
-			log.Info("Set1 ChainId to %v", config.ChainID_TESS)
+			log.Info("Set1 ChainId to ", "number", config.ChainID_TESS)
 			return params.GenesisDifficulty //Reset difficulty
 		}
 
 		if config.TessForkBlock != nil && config.TessForkBlock.Cmp(next) == 0 {
 			// Dynamic Change ChainID
 			config.ChainID = config.ChainID_TESS
-			log.Info("Set2 ChainId to %v", config.ChainID_TESS)
+			log.Info("Set2 ChainId to ", "number", config.ChainID_TESS)
 			return big.NewInt(1) //Reset
 		}
 		return calcDifficultyEthPoW(time, parent)
@@ -732,15 +732,15 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		currentblock := header.Number
 		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
 		bonusround1 := big.NewInt(1).Add(config.TessForkBlock, big.NewInt(5000))
-		// log.Info(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
+		// fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
 
 		config.ChainID = config.ChainID_TESS
-		// log.Info("Set2 ChainId to %v\n", config.ChainID_TESS)
+		// log.Info("Set2 ChainId to ","number", config.ChainID_TESS)
 
 		// Intial Block from TessFork to +5000 Block is mined by TESSfoundation for DevFund
 		if currentblock.Cmp(bonusround1) < 0 {
 			blockReward = big.NewInt(1).Mul(TessBlockReward, big.NewInt(100)) // 20000TETH per block * 5000
-			log.Info(" - Bonus Period1: BlockNumber %-8v : %-8v\n", currentblock, blockReward)
+			log.Info(" - Bonus Period1: BlockNumber ", "number" , currentblock, "reward", blockReward)
 
 		} else if currentblock.Cmp(big20M) > 0 {
 
@@ -750,17 +750,17 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 			subr := big.NewInt(1).Mul(decrwd, big.NewInt(qI64+1))
 
 			// every 5M blockheights , decrease reward 10% of TessBlockReward , after 20M blockheights
-			log.Info(" c %-8v r   %-8v q %-8v, subr %-8v \n", cbI64, rbI64, qI64, subr)
+			// fmt.Printf(" c %-8v r   %-8v q %-8v, subr %-8v \n", cbI64, rbI64, qI64, subr)
 			if subr.Cmp(blockReward) <= 0 {
 				blockReward = blockReward.Sub(blockReward, subr)
-				log.Info(" - Reward 1: %-8v %-8v\n", currentblock, blockReward)
+			//	fmt.Printf(" - Reward 1: %-8v %-8v\n", currentblock, blockReward)
 			} else {
 				blockReward = big.NewInt(0)
 				//	log.Info(" - Reward 0: %-8v %-8v\n", currentblock, blockReward)
 			}
 			//  log.Info(" - Reward : %-8v %-8v\n", currentblock, blockReward)
 		}
-		log.Info(" - Reward : %-8v %-8v\n", currentblock, blockReward)
+		// log.Info(" Block - Reward : ", "number", currentblock, "reward",blockReward)
 	}
 
 	// Accumulate the rewards for the miner and any included uncles
