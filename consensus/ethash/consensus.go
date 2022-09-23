@@ -23,6 +23,7 @@ import (
 	"math/big"
 	"runtime"
 	"time"
+	"os"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
@@ -726,30 +727,44 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	if config.IsTessFork(header.Number) {
 		// default TESS Fork BlockReward is 200 TETH
 		blockReward = TessBlockReward
+		currentblock := header.Number
 		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
-		fmt.Printf(" - TEth TESS: BlockNumber %-8v : %-8v, decr %-8v\n", header.Number, blockReward, decrwd)
+		bonusround1 := big.NewInt(1).Add(config.TessForkBlock,big.NewInt(5000))
+		fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
 
 			config.ChainID = config.ChainID_TESS
-			fmt.Printf("Set2 ChainId to %v", config.ChainID_TESS)
+			fmt.Printf("Set2 ChainId to %v\n", config.ChainID_TESS)
+
+
+		currentblock = big.NewInt(24_000_001)
 
 		// Intial Block from TessFork to +5000 Block is mined by TESSfoundation for DevFund
-		if header.Number.Cmp(config.TessForkBlock.Add(config.TessForkBlock, big.NewInt(5000))) < 0 {
-			blockReward = TessBlockReward.Mul(TessBlockReward, big.NewInt(100)) // 20000TETH per block * 5000
-			fmt.Printf(" - TEth TESS: BlockNumber %-8v : %-8v\n", header.Number, blockReward)
+		if currentblock.Cmp(bonusround1) < 0 {
+			blockReward = big.NewInt(1).Mul(TessBlockReward, big.NewInt(100)) // 20000TETH per block * 5000
+			fmt.Printf(" - Bonus Period1: BlockNumber %-8v : %-8v\n", currentblock, blockReward)
 
-		} else if header.Number.Cmp(big20M) > 0 {
-			resblock := header.Number.Sub(header.Number, big20M)
+		} else if currentblock.Cmp(big20M) > 0 {
+
+			resblock := big.NewInt(0).Sub(currentblock, big20M)
 			d := resblock
 			// every 5M blockheights , decrease reward 10% of TessBlockReward , after 20M blockheights
 			v := d.Div(d, big5M)
 			v = v.Add(v, big1)
 			subr := v.Mul(v, decrwd)
+
+			fmt.Printf(" -  BlockNumber %-8v resblock: %-8v , rwd %-8v\n", currentblock, resblock,  blockReward, d,v,subr)
+
 			if subr.Cmp(blockReward) <= 0 {
 				blockReward = blockReward.Sub(blockReward, subr)
 			} else {
 				blockReward = big.NewInt(0) // no more blockRewards, only GasFee is mined.
 			}
+
+			fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
+
+			os.Exit(99)
 		}
+		fmt.Printf(" - Reward : %-8v %-8v\n", currentblock, blockReward)
 	}
 
 	// Accumulate the rewards for the miner and any included uncles
