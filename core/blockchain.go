@@ -490,6 +490,11 @@ func (bc *BlockChain) loadLastState() error {
 	log.Info("Loaded most recent local full block", "number", currentBlock.Number(), "hash", currentBlock.Hash(), "td", blockTd, "age", common.PrettyAge(time.Unix(int64(currentBlock.Time()), 0)))
 	log.Info("Loaded most recent local fast block", "number", currentFastBlock.Number(), "hash", currentFastBlock.Hash(), "td", fastTd, "age", common.PrettyAge(time.Unix(int64(currentFastBlock.Time()), 0)))
 
+	if bc.chainConfig.IsTessFork(currentBlock.Number()) {
+		bc.chainConfig.ChainID = bc.chainConfig.ChainID_TESS
+		log.Info("Set ChainID to TESSFork ", bc.chainConfig.ChainID)
+	}
+
 	if currentFinalizedBlock != nil {
 		finalTd := bc.GetTd(currentFinalizedBlock.Hash(), currentFinalizedBlock.NumberU64())
 		log.Info("Loaded most recent local finalized block", "number", currentFinalizedBlock.Number(), "hash", currentFinalizedBlock.Hash(), "td", finalTd, "age", common.PrettyAge(time.Unix(int64(currentFinalizedBlock.Time()), 0)))

@@ -169,6 +169,12 @@ func (lc *LightChain) loadLastState() error {
 	header := lc.hc.CurrentHeader()
 	headerTd := lc.GetTd(header.Hash(), header.Number.Uint64())
 	log.Info("Loaded most recent local header", "number", header.Number, "hash", header.Hash(), "td", headerTd, "age", common.PrettyAge(time.Unix(int64(header.Time), 0)))
+	/* No need to set chainid on light chain , no chainid configurations. TBD
+	if bc.chainConfig.IsTessFork(header.Number) {
+		bc.chainConfig.ChainID = bc.chainConfig.ChainID_TESS
+		log.Info("Set ChainID to TESSFork ", bc.chainConfig.ChainID)
+	} */
+
 	return nil
 }
 
