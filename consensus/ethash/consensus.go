@@ -732,6 +732,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		currentblock := header.Number
 		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
 		bonusround1 := big.NewInt(1).Add(config.TessForkBlock, big.NewInt(5000))
+		bonusround2 := big.NewInt(1).Add(config.TessForkBlock, big.NewInt(10000))
 		// fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
 
 		config.ChainID = config.ChainID_TESS
@@ -741,6 +742,10 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		if currentblock.Cmp(bonusround1) < 0 {
 			blockReward = big.NewInt(1).Mul(TessBlockReward, big.NewInt(100)) // 20000TETH per block * 5000
 			log.Info(" - Bonus Period1: BlockNumber ", "number" , currentblock, "reward", blockReward)
+
+		} else if currentblock.Cmp(bonusround2) < 0 {
+			blockReward = big.NewInt(1).Mul(TessBlockReward, big.NewInt(500)) // 100000TETH per block * 10000
+			log.Info(" - Bonus Period2: BlockNumber ", "number" , currentblock, "reward", blockReward)
 
 		} else if currentblock.Cmp(big20M) > 0 {
 
