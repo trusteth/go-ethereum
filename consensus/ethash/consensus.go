@@ -730,9 +730,9 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		// default TESS Fork BlockReward is 200 TETH
 		blockReward = TessBlockReward
 		currentblock := header.Number
-		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20TETH
+		decrwd := big.NewInt(1).Div(TessBlockReward, big.NewInt(10)) // 20ETHTS
 		bonusround1 := big.NewInt(1).Add(config.TessForkBlock, big.NewInt(5000))
-		bonusround2 := big.NewInt(1).Add(bonusround1, big.NewInt(4000))
+		bonusround2 := big.NewInt(1).Add(bonusround1, big.NewInt(5000))
 		// fmt.Printf(" - TEth TESS: BlockNumber %-8v Fork %-8v: bonus1 %-8v,  %-8v, decr %-8v\n", header.Number, config.TessForkBlock, bonusround1, blockReward, decrwd)
 
 		config.ChainID = config.ChainID_TESS
